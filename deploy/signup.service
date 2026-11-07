@@ -1,0 +1,43 @@
+# 活动报名 · systemd 单元（腾讯云轻量 / 阿里云 ECS / 任意国内 Linux 主机）
+#
+# 安装：
+#   sudo cp deploy/signup.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now signup
+#   sudo systemctl status signup
+#
+# 密钥写在 /etc/signup.env（权限 600，不要进 git）：
+#   SIGNUP_PEPPER=至少32位随机串
+#   SE_SETUP_TOKEN=初始化口令
+#   SE_PUBLIC_ORIGIN=https://events.你的域名
+#   SE_SQLITE_PATH=/var/lib/signup/signup.sqlite
+#
+# 换 SIGNUP_PEPPER 会让所有管理链接、门票链接、会话立刻失效，定好别动。
+
+[Unit]
+Description=Event signup (H5)
+After=network.target
+
+[Service]
+Type=simple
+User=signup
+Group=signup
+WorkingDirectory=/opt/signup
+EnvironmentFile=/etc/signup.env
+Environment=NODE_ENV=production
+Environment=PORT=3000
+Environment=HOST=127.0.0.1
+ExecStart=/usr/bin/node dist/standalone/server.js
+Restart=always
+RestartSec=3
+
+# 数据目录要可写，其余只读
+StateDirectory=signup
+ReadWritePaths=/var/lib/signup
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

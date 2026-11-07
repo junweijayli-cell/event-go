@@ -1,0 +1,31 @@
+# dependencies
+/node_modules
+
+# build output
+/.next/
+/.vinext/
+/dist/
+/out/
+*.tsbuildinfo
+next-env.d.ts
+
+# wrangler / miniflare local state
+/.wrangler/
+
+# secrets — never commit. SIGNUP_PEPPER / SE_SETUP_TOKEN live here locally.
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+*.pem
+*.key
+
+# 自托管时产生的 SQLite 数据与备份
+/data/
+/backups/
+
+# misc
+.DS_Store
+npm-debug.log*
+/coverage

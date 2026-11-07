@@ -1,0 +1,6 @@
+# 仓库里一律 LF：部署目标是 Linux（Cloudflare Workers / 国内主机），
+# Windows 上 checkout 时 git 会按本地设置转换。
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.ico binary

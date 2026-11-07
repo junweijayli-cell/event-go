@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "event-go",
+  "main": "vinext/server/app-router-entry",
+  "compatibility_date": "2026-05-15",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "preview_urls": true,
+  "observability": { "enabled": true },
+  "assets": {
+    "directory": "dist/client",
+    "binding": "ASSETS"
+  },
+  // 活动报名的图片（封面、更新配图）默认存 D1。在 Cloudflare 开通 R2 后，
+  // 把下面这段取消注释就会自动改走 R2（已在 D1 的旧图继续可读）：
+  // "r2_buckets": [{ "binding": "SE_MEDIA", "bucket_name": "event-go-media" }],
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "event-go",
+      // 跑一次 `npx wrangler d1 create event-go`，把它打印的 id 填到这里。
+      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+    }
+  ]
+}

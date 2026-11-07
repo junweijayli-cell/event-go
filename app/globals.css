@@ -1,0 +1,20 @@
+/* 设计变量与基础样式。活动报名的组件样式在 app/se.css。 */
+:root {
+  --paper: #f5f2e9; --paper-2: #e9e4d8; --white: #fffefa; --ink: #17342d;
+  --muted: #6d7c75; --jade: #28594b; --jade-2: #3c7463; --gold: #dba94e;
+  --clay: #c87959; --plum: #79688e; --blue: #467a8d; --line: rgba(23,52,45,.11);
+  --shadow: 0 24px 60px rgba(23,52,45,.11); --serif: Georgia, "Songti SC", "STSong", serif;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans SC", system-ui, sans-serif; }
+button, input, textarea, select { font: inherit; }
+button { color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible { outline: 3px solid rgba(219,169,78,.45); outline-offset: 2px; }
+a { color: var(--jade); }
+/* 正文里的行内代码。大号展示用的活动码是 app/se.css 的 .se-code，别混用。 */
+code { border-radius: 5px; background: var(--paper-2); padding: 1px 5px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .92em; }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

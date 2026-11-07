@@ -1,0 +1,18 @@
+# 本地开发用的密钥。复制成 .dev.vars 再改（.dev.vars 已在 .gitignore 里）。
+#
+# 生产环境不要用这个文件，用：
+#   npx wrangler secret put SIGNUP_PEPPER
+#   npx wrangler secret put SE_SETUP_TOKEN
+
+# 令牌加盐。库里只存 sha256(令牌 + SIGNUP_PEPPER)。
+# 一旦更换，所有管理链接、门票链接、登录会话全部失效 —— 上线前定好就别再动。
+SIGNUP_PEPPER=local-dev-pepper-change-me-at-least-32-chars
+
+# 打开 /manage/setup 创建第一个活动时要输的口令。
+SE_SETUP_TOKEN=dev-setup-token
+
+# 可选。绑了自有域名后设上，否则二维码里印的会是 workers.dev 的地址。
+# SE_PUBLIC_ORIGIN=https://events.example.com
+
+# 可选，仅 Node 自托管时用。默认 ./data/signup.sqlite。
+# SE_SQLITE_PATH=/var/lib/signup/signup.sqlite
