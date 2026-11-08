@@ -109,6 +109,19 @@ async function main() {
   check('拿到管理链接且只出现一次', typeof setup.body.manageLink === 'string' && setup.body.manageLink.includes('/m/'));
   check('建完即持有管理会话 cookie', ownerJar.has('se_admin'));
 
+  // 进后台之前要先认领（本人确认自己的名字），发起人也一样。接口不受这道闸影响。
+  const beforeClaim = await call(ownerJar, `/manage/${eventId}`);
+  check(
+    '没认领之前进不了后台，先去认领页',
+    (beforeClaim.headers.get('location') || '').endsWith('/welcome'),
+    `status=${beforeClaim.status} location=${beforeClaim.headers.get('location')}`,
+  );
+  const claimed = await callJson(ownerJar, '/api/se/admins', {
+    method: 'PATCH',
+    json: { action: 'profile', name: '发起人老王' },
+  });
+  check('认领自己的身份后进得了后台', claimed.status === 200 && claimed.body?.ok === true, JSON.stringify(claimed.body));
+
   const noAuth = jar();
   const blocked = await callJson(noAuth, '/api/se/events', { method: 'PATCH', json: { title: '想改别人的活动' } });
   check('没有管理会话改不了活动设置', blocked.status >= 400, `status=${blocked.status}`);

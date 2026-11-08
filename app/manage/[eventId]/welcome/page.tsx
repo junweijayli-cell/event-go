@@ -32,6 +32,12 @@ export default async function WelcomePage({ params }: { params: Promise<{ eventI
         <p className="se-muted">
           改了名字之后，你的分享文案、二维码总表上的署名，以及名单里你邀请来的人，都会一起跟着改。
         </p>
+      ) : admin.role === 'owner' ? (
+        <div className="se-note">
+          <span>
+            这个活动是你建的。<b>先确认一下你的名字</b>，报名的人会在分享文案里看到它，名单上你邀请来的人也挂这个名字。填完就进后台 —— 这一步只做一次。
+          </span>
+        </div>
       ) : (
         <div className="se-note">
           <span>

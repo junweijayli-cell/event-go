@@ -126,6 +126,9 @@ async function newEvent(title) {
     console.log('请确认 dev 服务已启动，且 setupToken 与 .dev.vars 里的 SE_SETUP_TOKEN 一致。');
     process.exit(1);
   }
+  // 发起人现在也要认领才进得了后台页面，这里直接走掉，后面的用例才测得到别的东西。
+  // 「发起人也必须认领」这条本身在 6.5 节用一个单独的活动验。
+  await callJson(owner, '/api/se/admins', { method: 'PATCH', json: { action: 'profile', name: '压测发起人' } });
   return { owner, id: setup.body.eventId, code: setup.body.eventCode, manageLink: setup.body.manageLink };
 }
 
@@ -511,8 +514,30 @@ async function main() {
   const renameRows = renameCsv.rows.slice(1).filter((row) => inviterCol >= 0 && row[inviterCol] === renamed).length;
   check('认领之后改名，已有报名的邀请人也跟着改', renameRows === 10, `rows=${renameRows}`);
 
-  const ownerHome = await callText(main1.owner, `/manage/${main1.id}`);
-  check('发起人不用走认领（建活动时已经填过名字）', ownerHome.status === 200, `status=${ownerHome.status}`);
+  // 发起人也不例外。单独建一个活动、故意不替它认领，验证同样被拦。
+  const freshOwner = jar();
+  const freshSetup = await callJson(freshOwner, '/api/se/setup', {
+    method: 'POST',
+    json: { setupToken: SETUP_TOKEN, title: '压测-发起人也要认领', ownerName: '新发起人' },
+  });
+  check('建活动成功', freshSetup.body?.ok === true, JSON.stringify(freshSetup.body));
+  const freshId = freshSetup.body.eventId;
+  const ownerGate = await call(freshOwner, `/manage/${freshId}`);
+  check(
+    '发起人建完活动也要先认领，不直接进后台',
+    (ownerGate.headers.get('location') || '').endsWith('/welcome'),
+    `status=${ownerGate.status} location=${ownerGate.headers.get('location')}`,
+  );
+  const ownerWelcome = await callText(freshOwner, `/manage/${freshId}/welcome`);
+  check('发起人看到的是「这个活动是你建的」那套说法', ownerWelcome.text.includes('这个活动是你建的'), `status=${ownerWelcome.status}`);
+  check('认领页预填建活动时写的名字', ownerWelcome.text.includes('新发起人'), '');
+  const ownerClaim = await callJson(freshOwner, '/api/se/admins', {
+    method: 'PATCH',
+    json: { action: 'profile', name: '新发起人本人' },
+  });
+  check('发起人认领成功', ownerClaim.status === 200 && ownerClaim.body?.ok === true, JSON.stringify(ownerClaim.body));
+  const ownerAfter = await callText(freshOwner, `/manage/${freshId}`);
+  check('认领之后发起人进得了后台', ownerAfter.status === 200 && ownerAfter.text.includes('新发起人本人'), `status=${ownerAfter.status}`);
 
   // ======================================================== 7. 越权
   section('7. 越权：跨活动、伪造会话、撤销后的链接');

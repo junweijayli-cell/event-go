@@ -363,8 +363,9 @@ export async function createAdmin(
       .bind(
         adminId, eventId, name, name, text(input.note, 60), input.role === 'owner' ? 'owner' : 'admin',
         hashToken(token, pepperFor()), stamp,
-        // 发起人在建活动时就自己填了名字，不用再走一遍认领；被邀请来的管理员要走。
-        input.role === 'owner' ? stamp : null,
+        // 谁都要认领，发起人也不例外。建活动表单里填的那个名字只当预填 ——
+        // 进后台之前本人再确认一次，三种身份的入口体验才是一致的。
+        null,
         channelId, stamp, stamp,
       ),
   ]);

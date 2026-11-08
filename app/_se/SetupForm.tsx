@@ -1,13 +1,11 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import { CopyButton } from './CopyButton';
 
 // 建活动表单。/manage/setup（凭初始化口令，开第一个活动）和 /manage/new
 // （凭现有发起人会话，再开一个）共用。
 export function SetupForm({ needToken }: { needToken: boolean }) {
-  const router = useRouter();
   const [form, setForm] = useState({ setupToken: '', title: '', ownerName: '', summary: '' });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -56,7 +54,15 @@ export function SetupForm({ needToken }: { needToken: boolean }) {
         </div>
         <div className="se-btn-row" style={{ marginTop: 10 }}>
           <CopyButton text={done.manageLink} label="复制管理链接" />
-          <button className="se-btn se-btn--sm se-btn--primary" type="button" onClick={() => router.replace(done.path)}>
+          <button
+            className="se-btn se-btn--sm se-btn--primary"
+            type="button"
+            // 整页跳转，不走客户端路由：这一跳会被服务端重定向到认领页，
+            // 交给浏览器处理最稳。
+            onClick={() => {
+              window.location.href = done.path;
+            }}
+          >
             进入活动后台
           </button>
         </div>
