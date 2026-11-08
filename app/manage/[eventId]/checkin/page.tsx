@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { CheckinConsole } from '@/app/_se/CheckinConsole';
 import { ManageHeader } from '@/app/_se/ManageNav';
@@ -57,9 +56,9 @@ export default async function CheckinPage({ params }: { params: Promise<{ eventI
           </ul>
         )}
         <div className="se-btn-row" style={{ marginTop: 12 }}>
-          <Link className="se-btn se-btn--sm" href={`/manage/${event.id}/roster?checked=out&status=confirmed`}>
+          <a className="se-btn se-btn--sm" href={`/manage/${event.id}/roster?checked=out&status=confirmed`}>
             看还没入场的人
-          </Link>
+          </a>
         </div>
       </div>
     </main>

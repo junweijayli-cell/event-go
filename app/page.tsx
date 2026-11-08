@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import './se.css';
 
 export const metadata: Metadata = {
@@ -39,9 +38,9 @@ export default function Home() {
       </div>
 
       <div className="se-btn-row">
-        <Link className="se-btn se-btn--primary" href="/manage/setup">
+        <a className="se-btn se-btn--primary" href="/manage/setup">
           创建活动
-        </Link>
+        </a>
       </div>
       <p className="se-hint">
         创建需要初始化口令（部署时设的 <code>SE_SETUP_TOKEN</code>）。

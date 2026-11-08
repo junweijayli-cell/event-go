@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { CopyButton } from '@/app/_se/CopyButton';
 import { ManageHeader } from '@/app/_se/ManageNav';
@@ -64,9 +63,9 @@ export default async function ManageHome({ params }: { params: Promise<{ eventId
         </div>
         <div className="se-btn-row" style={{ marginTop: 10 }}>
           <CopyButton text={myLink} label="复制我的链接" />
-          <Link className="se-btn se-btn--sm se-btn--primary" href={`/manage/${event.id}/share`}>
+          <a className="se-btn se-btn--sm se-btn--primary" href={`/manage/${event.id}/share`}>
             二维码与分享文案
-          </Link>
+          </a>
         </div>
       </div>
 
@@ -85,9 +84,9 @@ export default async function ManageHome({ params }: { params: Promise<{ eventId
                   </small>
                 </div>
                 <div className="se-row-actions">
-                  <Link className="se-btn se-btn--sm" href={`/manage/${event.id}/roster?inviter=${row.inviterId}`}>
+                  <a className="se-btn se-btn--sm" href={`/manage/${event.id}/roster?inviter=${row.inviterId}`}>
                     看名单
-                  </Link>
+                  </a>
                 </div>
               </li>
             ))}
@@ -114,13 +113,13 @@ export default async function ManageHome({ params }: { params: Promise<{ eventId
           </div>
         </dl>
         <div className="se-btn-row" style={{ marginTop: 12 }}>
-          <Link className="se-btn se-btn--sm" href={`/e/${event.code}`}>
+          <a className="se-btn se-btn--sm" href={`/e/${event.code}`}>
             看报名者视角
-          </Link>
+          </a>
           {admin.role === 'owner' ? (
-            <Link className="se-btn se-btn--sm se-btn--ghost" href="/manage/new">
+            <a className="se-btn se-btn--sm se-btn--ghost" href="/manage/new">
               新建活动
-            </Link>
+            </a>
           ) : null}
         </div>
       </div>

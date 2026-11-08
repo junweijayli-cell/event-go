@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import '@/app/se.css';
 import { resolveChannelCode } from '@/db/se/attribution';
@@ -34,9 +33,9 @@ export default async function SignupPage({ params, searchParams }: Props) {
           <b>{STATE_LABELS[view.state]}</b>
           <span>现在无法提交报名。</span>
         </div>
-        <Link className="se-btn" href={`/e/${event.code}`}>
+        <a className="se-btn" href={`/e/${event.code}`}>
           返回活动详情
-        </Link>
+        </a>
       </main>
     );
   }

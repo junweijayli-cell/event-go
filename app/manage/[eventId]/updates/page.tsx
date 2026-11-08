@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { DeleteUpdateButton } from '@/app/_se/DeleteUpdateButton';
 import { ManageHeader } from '@/app/_se/ManageNav';
@@ -69,9 +68,9 @@ export default async function UpdatesPage({ params }: { params: Promise<{ eventI
           </ul>
         )}
         <div className="se-btn-row" style={{ marginTop: 12 }}>
-          <Link className="se-btn se-btn--sm" href={`/e/${event.code}`}>
+          <a className="se-btn se-btn--sm" href={`/e/${event.code}`}>
             看报名者视角
-          </Link>
+          </a>
         </div>
       </div>
     </main>

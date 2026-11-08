@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { ConfirmCheckin } from '@/app/_se/ConfirmCheckin';
 import { findRegistrationByTicket, getEventById } from '@/db/se/data';
@@ -40,9 +39,9 @@ export default async function VerifyPage({ params }: { params: Promise<{ token: 
         <div className="se-note se-note--danger">
           <span>票不存在、已被重发，或者不属于你管理的这个活动。</span>
         </div>
-        <Link className="se-btn" href={`/manage/${admin.event_id}/checkin`}>
+        <a className="se-btn" href={`/manage/${admin.event_id}/checkin`}>
           回到核销台
-        </Link>
+        </a>
       </main>
     );
   }
@@ -98,12 +97,12 @@ export default async function VerifyPage({ params }: { params: Promise<{ token: 
       )}
 
       <div className="se-btn-row" style={{ marginTop: 14 }}>
-        <Link className="se-btn se-btn--sm" href={`/manage/${admin.event_id}/checkin`}>
+        <a className="se-btn se-btn--sm" href={`/manage/${admin.event_id}/checkin`}>
           核销台
-        </Link>
-        <Link className="se-btn se-btn--sm se-btn--ghost" href={`/manage/${admin.event_id}/roster`}>
+        </a>
+        <a className="se-btn se-btn--sm se-btn--ghost" href={`/manage/${admin.event_id}/roster`}>
           名单
-        </Link>
+        </a>
       </div>
     </main>
   );

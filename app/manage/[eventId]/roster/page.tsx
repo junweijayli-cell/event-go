@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { ManageHeader } from '@/app/_se/ManageNav';
 import { RosterRows, type RosterRow } from '@/app/_se/RosterRows';
@@ -110,37 +109,37 @@ export default async function RosterPage({
       <div className="se-card se-card--tight">
         <p className="se-eyebrow">按邀请人筛选</p>
         <div className="se-nav" style={{ margin: '0 0 10px' }}>
-          <Link href={keep({ inviter: '' })} className={!filter.inviter ? 'is-active' : undefined}>
+          <a href={keep({ inviter: '' })} className={!filter.inviter ? 'is-active' : undefined}>
             全部 {stats.totals.total}
-          </Link>
+          </a>
           {stats.byInviter.map((row) => (
-            <Link
+            <a
               key={row.inviterId}
               href={keep({ inviter: row.inviterId })}
               className={filter.inviter === row.inviterId ? 'is-active' : undefined}
             >
               {row.inviterName} {row.total}
-            </Link>
+            </a>
           ))}
         </div>
 
         <p className="se-eyebrow">按状态</p>
         <div className="se-nav" style={{ margin: '0 0 10px' }}>
           {STATUS_TABS.map((tab) => (
-            <Link
+            <a
               key={tab.key}
               href={keep({ status: tab.key })}
               className={filter.status === tab.key ? 'is-active' : undefined}
             >
               {tab.label}
-            </Link>
+            </a>
           ))}
-          <Link href={keep({ checked: filter.checked === 'out' ? '' : 'out' })} className={filter.checked === 'out' ? 'is-active' : undefined}>
+          <a href={keep({ checked: filter.checked === 'out' ? '' : 'out' })} className={filter.checked === 'out' ? 'is-active' : undefined}>
             未核销
-          </Link>
-          <Link href={keep({ checked: filter.checked === 'in' ? '' : 'in' })} className={filter.checked === 'in' ? 'is-active' : undefined}>
+          </a>
+          <a href={keep({ checked: filter.checked === 'in' ? '' : 'in' })} className={filter.checked === 'in' ? 'is-active' : undefined}>
             已核销
-          </Link>
+          </a>
         </div>
 
         {/* 搜索用普通 GET 表单，没有 JS 也能用 */}
@@ -158,9 +157,9 @@ export default async function RosterPage({
             导出当前名单（Excel 可开）
           </a>
           {filter.query || filter.inviter || filter.status !== 'all' || filter.checked ? (
-            <Link className="se-btn se-btn--sm se-btn--ghost" href={base}>
+            <a className="se-btn se-btn--sm se-btn--ghost" href={base}>
               清除筛选
-            </Link>
+            </a>
           ) : null}
         </div>
       </div>

@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { PrintButton } from '@/app/_se/PrintButton';
 import { getOrigin } from '@/db/se/auth';
@@ -29,9 +28,9 @@ export default async function QrSheetPage({ params }: { params: Promise<{ eventI
         </p>
         <div className="se-btn-row" style={{ margin: '12px 0 18px' }}>
           <PrintButton />
-          <Link className="se-btn se-btn--sm se-btn--ghost" href={`/manage/${event.id}/share`}>
+          <a className="se-btn se-btn--sm se-btn--ghost" href={`/manage/${event.id}/share`}>
             返回分享页
-          </Link>
+          </a>
         </div>
       </div>
 

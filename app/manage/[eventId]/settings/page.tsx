@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { CopyButton } from '@/app/_se/CopyButton';
 import { ManageHeader } from '@/app/_se/ManageNav';
@@ -25,9 +24,9 @@ export default async function SettingsPage({ params }: { params: Promise<{ event
         <div className="se-note se-note--warn">
           <span>活动设置只有发起人能改。你可以发布同步更新、看名单、核销。</span>
         </div>
-        <Link className="se-btn" href={`/manage/${event.id}/share`}>
+        <a className="se-btn" href={`/manage/${event.id}/share`}>
           去拿我的专属链接
-        </Link>
+        </a>
       </main>
     );
   }

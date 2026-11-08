@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { CopyButton } from '@/app/_se/CopyButton';
 import { EventFactsCard, UpdateTimeline } from '@/app/_se/parts';
@@ -132,9 +131,9 @@ export default async function TicketPage({ params }: Props) {
             加入日历
           </a>
         ) : null}
-        <Link className="se-btn se-btn--sm se-btn--ghost" href={`/e/${event.code}`}>
+        <a className="se-btn se-btn--sm se-btn--ghost" href={`/e/${event.code}`}>
           活动详情
-        </Link>
+        </a>
       </div>
     </main>
   );

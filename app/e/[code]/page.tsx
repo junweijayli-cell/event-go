@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import '@/app/se.css';
 import { ChannelTracker } from '@/app/_se/ChannelTracker';
@@ -95,16 +94,16 @@ export default async function EventPage({ params, searchParams }: Props) {
 
       {ticketToken ? (
         <>
-          <Link className="se-btn se-btn--primary" href={`/t/${ticketToken}`}>
+          <a className="se-btn se-btn--primary" href={`/t/${ticketToken}`}>
             查看我的报名与门票
-          </Link>
+          </a>
           <p className="se-hint" style={{ textAlign: 'center' }}>这台手机已经报过名了。</p>
         </>
       ) : view.canSignup ? (
         <>
-          <Link className="se-btn se-btn--primary" href={signupHref}>
+          <a className="se-btn se-btn--primary" href={signupHref}>
             {view.waitlistOnly ? '报名候补' : '我要报名'}
-          </Link>
+          </a>
           {view.waitlistOnly ? (
             <p className="se-hint" style={{ textAlign: 'center' }}>名额已满，报名后进入候补，有空位主办方会联系你。</p>
           ) : view.deadlineAt ? (

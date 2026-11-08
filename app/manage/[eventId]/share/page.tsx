@@ -1,5 +1,4 @@
 import type { Metadata } from 'next';
-import Link from 'next/link';
 import '@/app/se.css';
 import { ChannelList, type ChannelItem } from '@/app/_se/ChannelList';
 import { CopyButton } from '@/app/_se/CopyButton';
@@ -95,9 +94,9 @@ export default async function SharePage({ params }: { params: Promise<{ eventId:
       <ChannelList items={items} canManage={admin.role === 'owner'} />
 
       <div className="se-btn-row">
-        <Link className="se-btn se-btn--sm" href={`/manage/${event.id}/qr-sheet`}>
+        <a className="se-btn se-btn--sm" href={`/manage/${event.id}/qr-sheet`}>
           二维码总表（可打印）
-        </Link>
+        </a>
       </div>
     </main>
   );

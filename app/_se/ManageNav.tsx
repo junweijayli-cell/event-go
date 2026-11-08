@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { STATE_LABELS } from '@/db/se/view';
 import type { EventRow } from '@/db/se/data';
 import { openState } from '@/db/se/data';
@@ -38,13 +37,13 @@ export function ManageHeader({
       </p>
       <nav className="se-nav se-noprint">
         {TABS.map((tab) => (
-          <Link
+          <a
             key={tab.key}
             href={`/manage/${event.id}${tab.suffix}`}
             className={tab.key === active ? 'is-active' : undefined}
           >
             {tab.label}
-          </Link>
+          </a>
         ))}
       </nav>
     </>
