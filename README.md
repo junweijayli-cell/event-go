@@ -1,5 +1,8 @@
 # 活动报名 / event-go
 
+线上：**https://event-go.junwei-jay-li.workers.dev**
+（`workers.dev` 在国内经常打不开，正式活动请先换自有域名，见 [docs/DEPLOY_CN.md](docs/DEPLOY_CN.md)）
+
 一套报名表单，任意多个渠道二维码，扫哪个码进来就自动把邀请人记成谁。报名者看不到别人的信息，
 也看不到已报名人数。活动时间地点还没定也能先开报名，定了再发同步更新。现场所有管理员都能用
 微信扫一扫核销任意门票。

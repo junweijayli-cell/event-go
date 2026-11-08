@@ -7,6 +7,12 @@
   "workers_dev": true,
   "preview_urls": true,
   "observability": { "enabled": true },
+
+  // 二维码和分享链接里的绝对地址。换自有域名后改这里并重新部署，
+  // 否则已经发出去的码还指向旧地址。
+  "vars": {
+    "SE_PUBLIC_ORIGIN": "https://event-go.junwei-jay-li.workers.dev"
+  },
   "assets": {
     "directory": "dist/client",
     "binding": "ASSETS"
@@ -18,8 +24,7 @@
     {
       "binding": "DB",
       "database_name": "event-go",
-      // 跑一次 `npx wrangler d1 create event-go`，把它打印的 id 填到这里。
-      "database_id": "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+      "database_id": "02c58845-08c1-4e6e-9b97-b2ed44b7cee4"
     }
   ]
 }
