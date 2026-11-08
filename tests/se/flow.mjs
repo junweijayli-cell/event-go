@@ -3,12 +3,12 @@
 // 用法：
 //   1) 另开一个终端：npm run dev
 //   2) node tests/se/flow.mjs [baseUrl] [setupToken]
-//      默认 http://localhost:5173 和 .dev.vars 里的 dev-setup-token
+//      默认 http://localhost:3000 和 .dev.vars 里的 dev-setup-token
 //
 // 它按需求逐条验：隐私（看不到他人信息与人数）、最后一次扫码归因、名额与候补、
 // 并发不超卖、审核出票、同步更新可查阅、全员可核销与重复核销、按邀请人筛选、导出。
 
-const BASE = (process.argv[2] || 'http://localhost:5173').replace(/\/+$/, '');
+const BASE = (process.argv[2] || 'http://localhost:3000').replace(/\/+$/, '');
 const SETUP_TOKEN = process.argv[3] || 'dev-setup-token';
 
 let passed = 0;

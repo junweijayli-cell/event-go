@@ -501,7 +501,11 @@ export async function submitSignup(input: SignupInput): Promise<SignupResult> {
     .first<RegistrationRow>();
   if (existing) return { kind: 'duplicate', registration: existing };
 
-  const channel = input.channelCode ? await findChannel(event.id, input.channelCode) : null;
+  // 停用的渠道不再记邀请人（和 /api/se/track 的口径一致：发起人点了「停用渠道」，
+  // 这条链接就不该再给他记人情）。但人照样报得上 —— 海报已经印出去了，
+  // 不能因为后台停用就把扫码的人挡在门外，只是记成直接进入。
+  const found = input.channelCode ? await findChannel(event.id, input.channelCode) : null;
+  const channel = found && found.enabled === 1 ? found : null;
   const inviter = channel?.admin_id ? await getAdmin(channel.admin_id) : null;
 
   // 名额：条件更新 + meta.changes 判定，D1 没有交互式事务。
@@ -565,8 +569,22 @@ export async function submitSignup(input: SignupInput): Promise<SignupResult> {
         .bind(nowIso(), event.id)
         .run();
     }
-    const message = String((error as Error)?.message || '');
-    if (message.includes('idx_se_reg_phone')) {
+    // 并发下 SELECT 查重和 INSERT 之间会插进来别人（双击提交、网络重试、
+    // 一家人同时帮同一个号报名），唯一索引是最后一道闸。SQLite 报的是列名
+    // （"UNIQUE constraint failed: se_registrations.event_id, se_registrations.phone"），
+    // 不是索引名，所以这里不认索引名，直接认 UNIQUE 再回查是哪一种。
+    const detail = [
+      String((error as Error)?.message || ''),
+      String(((error as Error)?.cause as Error | undefined)?.message || ''),
+    ].join(' ');
+    if (/UNIQUE constraint failed/i.test(detail)) {
+      // 先按 requestId 回查：这是同一个人连点两下，应该把首次结果还给他。
+      const again = await db
+        .prepare('SELECT * FROM se_registrations WHERE request_id = ?')
+        .bind(requestId)
+        .first<RegistrationRow>();
+      if (again) return { kind: 'repeat', registration: again };
+      // 再按手机号回查：这是同号抢注，告诉他已经报过了。
       const row = await db
         .prepare(
           `SELECT * FROM se_registrations WHERE event_id = ? AND phone = ?
