@@ -44,6 +44,7 @@ export default async function SharePage({ params }: { params: Promise<{ eventId:
       qrSrc: `/api/se/qr?e=${event.code}&c=${channel.code}&s=8`,
       shareText: shareText({ title: event.title, when, where, url: link, inviterName: channel.name }),
       isMe: channel.admin_id === admin.id,
+      claimed: owner ? Boolean(owner.claimed_at) : null,
     };
   });
 
@@ -75,6 +76,11 @@ export default async function SharePage({ params }: { params: Promise<{ eventId:
               </div>
               <p className="se-hint">
                 二维码在微信里长按可以保存或直接转发；要印海报就用「二维码总表」那页打印。
+              </p>
+              <p className="se-hint">
+                署名是「{mine.name}」。
+                <a href={`/manage/${event.id}/welcome`}>改我的显示名</a>
+                ——改完分享文案、二维码总表、名单里你邀请来的人会一起跟着改。
               </p>
             </div>
           </div>

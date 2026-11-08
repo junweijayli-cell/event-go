@@ -18,6 +18,9 @@ export type ChannelItem = {
   qrSrc: string;
   shareText: string;
   isMe: boolean;
+  // 只对有管理员的渠道有意义：本人是否已经打开过管理链接、填过自己的姓名。
+  // null 表示这条渠道没有管理员（海报/合作方），不涉及认领。
+  claimed: boolean | null;
 };
 
 const KIND_LABELS: Record<ChannelItem['kind'], string> = {
@@ -81,12 +84,20 @@ export function ChannelList({ items, canManage }: { items: ChannelItem[]; canMan
                 {item.name}
                 {item.isMe ? ' · 我' : ''}
               </b>
-              <span className={`se-chip ${item.enabled ? '' : 'se-chip--off'}`}>
-                {item.enabled ? KIND_LABELS[item.kind] : '已停用'}
+              <span style={{ flexShrink: 0 }}>
+                {item.claimed === false ? (
+                  <span className="se-chip se-chip--warn" style={{ marginRight: 6 }}>
+                    未认领
+                  </span>
+                ) : null}
+                <span className={`se-chip ${item.enabled ? '' : 'se-chip--off'}`}>
+                  {item.enabled ? KIND_LABELS[item.kind] : '已停用'}
+                </span>
               </span>
             </div>
             <small style={{ display: 'block', margin: '4px 0 8px', color: 'var(--muted)', fontSize: 11 }}>
               渠道码 {item.code} · 访问 {item.visits} · 报名 {item.signups} · 已核销 {item.checkedIn}
+              {item.claimed === false ? ' · 他还没打开过管理链接' : ''}
             </small>
             <div className="se-linkbox">
               <span>{item.signupLink}</span>

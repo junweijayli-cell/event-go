@@ -10,8 +10,9 @@ import {
   getEventById,
   reissueAdminToken,
   revokeAdminToken,
+  saveAdminProfile,
 } from '@/db/se/data';
-import { requireOwner } from '@/db/se/guard';
+import { requireApiAdmin, requireOwner } from '@/db/se/guard';
 import { getD1 } from '@/db/index';
 
 function names(raw: unknown): string[] {
@@ -79,9 +80,22 @@ export async function POST(request: Request) {
 // 重发 / 撤销管理链接，以及渠道启停。管理链接误发到群里时就用这里。
 export async function PATCH(request: Request) {
   try {
-    const owner = await requireOwner();
     const body = (await request.json()) as Record<string, unknown>;
     const action = String(body.action || '');
+
+    // 认领 / 改自己的名字。这一条是管理员作用在自己身上的，不能要求发起人身份，
+    // 所以必须排在下面 requireOwner() 之前。
+    if (action === 'profile') {
+      const self = await requireApiAdmin();
+      const updated = await saveAdminProfile(self, { name: body.name, phone: body.phone });
+      await audit(self, self.claimed_at ? 'admin.rename' : 'admin.claim', 'admin', self.id, {
+        invitedName: self.invited_name,
+        name: updated.name,
+      });
+      return NextResponse.json({ ok: true, name: updated.name, claimedAt: updated.claimed_at });
+    }
+
+    const owner = await requireOwner();
 
     if (action === 'reissue' || action === 'revoke') {
       const target = await getAdmin(String(body.adminId || ''));

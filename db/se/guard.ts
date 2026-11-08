@@ -16,11 +16,18 @@ export async function currentAdmin(): Promise<AdminRow | null> {
   return admin;
 }
 
-export async function requireAdmin(eventId: string): Promise<{ admin: AdminRow; event: EventRow }> {
+export async function requireAdmin(
+  eventId: string,
+  options: { allowUnclaimed?: boolean } = {},
+): Promise<{ admin: AdminRow; event: EventRow }> {
   const admin = await currentAdmin();
   if (!admin || admin.event_id !== eventId) redirect(LOCKED_PATH);
   const event = await getEventById(eventId);
   if (!event) redirect(LOCKED_PATH);
+  // 还没认领的管理员一律先去填自己的姓名。光在 /m/<令牌> 那里跳一次不够 ——
+  // 手敲一个后台 URL 就绕过去了，名单上就会一直挂着发起人随手起的名字。
+  // 认领页自己必须放行，否则无限重定向。
+  if (!admin.claimed_at && !options.allowUnclaimed) redirect(`/manage/${eventId}/welcome`);
   return { admin, event };
 }
 

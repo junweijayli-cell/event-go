@@ -40,11 +40,16 @@ export const seAdmins = sqliteTable('se_admins', {
   id: text('id').primaryKey(),
   eventId: text('event_id').notNull(),
   name: text('name').notNull(),
+  // 发起人生成链接时替他起的名；本人认领后 name 换成自己填的，这个留着好对账。
+  invitedName: text('invited_name').notNull().default(''),
+  phone: text('phone').notNull().default(''),
   note: text('note').notNull().default(''),
   role: text('role', { enum: ['owner', 'admin'] }).notNull().default('admin'),
   tokenHash: text('token_hash').notNull(),
   tokenIssuedAt: text('token_issued_at').notNull(),
   tokenRevokedAt: text('token_revoked_at'),
+  // 本人第一次打开管理链接、填完自己信息的时间。为空表示链接还没被人认领。
+  claimedAt: text('claimed_at'),
   channelId: text('channel_id'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull(),

@@ -13,7 +13,14 @@ import {
   makeTicketToken,
   normalizeCode,
 } from './codes';
-import { DEFAULT_FORM_SCHEMA, normalizeFormSchema, parseFormSchema, type SeFormSchema } from './form';
+import {
+  DEFAULT_FORM_SCHEMA,
+  PHONE_PATTERN,
+  normalizeFormSchema,
+  normalizePhone,
+  parseFormSchema,
+  type SeFormSchema,
+} from './form';
 
 // Beijing time (UTC+8) calendar date. Used for deadlines and day bucketing.
 function chinaDate(daysFromToday = 0) {
@@ -53,11 +60,14 @@ export type AdminRow = {
   id: string;
   event_id: string;
   name: string;
+  invited_name: string;
+  phone: string;
   note: string;
   role: 'owner' | 'admin';
   token_hash: string;
   token_issued_at: string;
   token_revoked_at: string | null;
+  claimed_at: string | null;
   channel_id: string | null;
   created_at: string;
   updated_at: string;
@@ -346,13 +356,16 @@ export async function createAdmin(
       .bind(channelId, eventId, code, name, adminId, stamp),
     db
       .prepare(
-        `INSERT INTO se_admins (id, event_id, name, note, role, token_hash, token_issued_at,
-          token_revoked_at, channel_id, created_at, updated_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?)`,
+        `INSERT INTO se_admins (id, event_id, name, invited_name, phone, note, role, token_hash,
+          token_issued_at, token_revoked_at, claimed_at, channel_id, created_at, updated_at)
+         VALUES (?, ?, ?, ?, '', ?, ?, ?, ?, NULL, ?, ?, ?, ?)`,
       )
       .bind(
-        adminId, eventId, name, text(input.note, 60), input.role === 'owner' ? 'owner' : 'admin',
-        hashToken(token, pepperFor()), stamp, channelId, stamp, stamp,
+        adminId, eventId, name, name, text(input.note, 60), input.role === 'owner' ? 'owner' : 'admin',
+        hashToken(token, pepperFor()), stamp,
+        // 发起人在建活动时就自己填了名字，不用再走一遍认领；被邀请来的管理员要走。
+        input.role === 'owner' ? stamp : null,
+        channelId, stamp, stamp,
       ),
   ]);
 
@@ -413,6 +426,49 @@ export async function listAdmins(eventId: string): Promise<AdminRow[]> {
     .bind(eventId)
     .all<AdminRow>();
   return response.results ?? [];
+}
+
+// 管理员认领自己那条链接：本人填真名（和选填的手机号），落库并记下认领时间。
+//
+// 名字要同步到三个地方，漏一个名单上就会出现两个称呼：
+//   1. se_admins.name           —— 后台页眉、管理员列表
+//   2. 他那条渠道的 name        —— 分享页、二维码总表、分享文案
+//   3. 已有报名的 inviter_name  —— 那是报名当时的姓名快照，不跟着 JOIN 走。
+//      认领通常发生在还没人报名之前，但「先发链接后认领」完全可能，
+//      不回填的话名单里挂的还是发起人当初随手起的名字。
+// 改名也走这里（认领过的人改自己的显示名），claimed_at 只在第一次落。
+export async function saveAdminProfile(
+  admin: AdminRow,
+  input: { name: unknown; phone?: unknown },
+): Promise<AdminRow> {
+  await ensureDatabase();
+  const db = getD1();
+  const name = text(input.name, 24);
+  if (!name) throw new SeError('INVALID_INPUT', '请填写你的姓名，报名的人会看到这个名字。');
+  const phone = normalizePhone(input.phone);
+  if (phone && !PHONE_PATTERN.test(phone)) {
+    throw new SeError('INVALID_INPUT', '手机号填了就要填对（11 位），不想留可以空着。');
+  }
+  const stamp = nowIso();
+
+  const statements = [
+    db
+      .prepare(
+        `UPDATE se_admins SET name = ?, phone = ?, claimed_at = COALESCE(claimed_at, ?), updated_at = ?
+          WHERE id = ?`,
+      )
+      .bind(name, phone, stamp, stamp, admin.id),
+    db
+      .prepare('UPDATE se_registrations SET inviter_name = ?, updated_at = ? WHERE event_id = ? AND inviter_admin_id = ?')
+      .bind(name, stamp, admin.event_id, admin.id),
+  ];
+  if (admin.channel_id) {
+    statements.push(
+      db.prepare('UPDATE se_channels SET name = ? WHERE id = ? AND event_id = ?').bind(name, admin.channel_id, admin.event_id),
+    );
+  }
+  await db.batch(statements);
+  return (await getAdmin(admin.id))!;
 }
 
 export async function listChannels(eventId: string): Promise<ChannelRow[]> {

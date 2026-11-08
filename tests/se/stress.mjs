@@ -447,6 +447,73 @@ async function main() {
     });
   }
 
+  // =============================================== 6.5 管理员认领身份
+  section('6.5 管理员认领：本人填自己的名字，填完才进后台');
+  const claimer = used[2];
+  const claimJar = jar();
+  const claimEntry = await call(claimJar, new URL(claimer.manageLink).pathname);
+  check(
+    '新管理链接先跳认领页，不是直接进后台',
+    (claimEntry.headers.get('location') || '').endsWith('/welcome'),
+    `location=${claimEntry.headers.get('location')}`,
+  );
+  check('换到了管理会话 cookie', claimJar.has('se_admin'));
+  const welcome = await callText(claimJar, `/manage/${main1.id}/welcome`);
+  check('认领页能打开', welcome.status === 200, `status=${welcome.status}`);
+  check('认领页显示发起人邀请时写的名字', welcome.text.includes(claimer.name), claimer.name);
+
+  const skipAttempt = await call(claimJar, `/manage/${main1.id}/roster`);
+  check(
+    '没认领就手敲后台 URL，照样被赶回认领页',
+    (skipAttempt.headers.get('location') || '').endsWith('/welcome'),
+    `status=${skipAttempt.status} location=${skipAttempt.headers.get('location')}`,
+  );
+
+  const emptyName = await callJson(claimJar, '/api/se/admins', { method: 'PATCH', json: { action: 'profile', name: '   ' } });
+  check('姓名不能空', emptyName.status === 400, `status=${emptyName.status} ${JSON.stringify(emptyName.body)}`);
+  const badPhoneClaim = await callJson(claimJar, '/api/se/admins', {
+    method: 'PATCH',
+    json: { action: 'profile', name: '老三', phone: '12345' },
+  });
+  check('手机号填了就得填对', badPhoneClaim.status === 400, JSON.stringify(badPhoneClaim.body));
+
+  const claimedName = '老三（市场部）';
+  const claimOk = await callJson(claimJar, '/api/se/admins', {
+    method: 'PATCH',
+    json: { action: 'profile', name: claimedName, phone: '13800001111' },
+  });
+  check('认领成功', claimOk.status === 200 && claimOk.body?.ok === true, JSON.stringify(claimOk.body));
+  check('认领时间落库了', Boolean(claimOk.body?.claimedAt), JSON.stringify(claimOk.body));
+
+  const afterClaim = await callText(claimJar, `/manage/${main1.id}/roster`);
+  check('认领之后进得了后台', afterClaim.status === 200, `status=${afterClaim.status}`);
+  check('后台页眉显示本人填的名字', afterClaim.text.includes(claimedName), claimedName);
+
+  const claimCsv = await exportCsv(main1.owner);
+  const renamedRows = claimCsv.rows.slice(1).filter((row) => inviterCol >= 0 && row[inviterCol] === claimedName).length;
+  const staleRows = claimCsv.rows.slice(1).filter((row) => inviterCol >= 0 && row[inviterCol] === claimer.name).length;
+  check(
+    '他之前邀请来的 10 个人，邀请人跟着改成新名字',
+    renamedRows === 10,
+    `新名=${renamedRows} 旧名残留=${staleRows}`,
+  );
+  check('名单里不再出现发起人当初起的占位名', staleRows === 0, `残留 ${staleRows} 行`);
+
+  const claimShare = await callText(claimJar, `/manage/${main1.id}/share`);
+  check('他的分享文案署名也换了', claimShare.text.includes(claimedName), `status=${claimShare.status}`);
+  const ownerSeesClaim = await shareIds(main1.owner, main1.id);
+  check('发起人那边看得到这条渠道已改名', ownerSeesClaim.has(claimedName), [...ownerSeesClaim.keys()].slice(0, 3).join(','));
+
+  // 认领过之后再改名，仍然全链路生效
+  const renamed = '老三改名了';
+  await callJson(claimJar, '/api/se/admins', { method: 'PATCH', json: { action: 'profile', name: renamed } });
+  const renameCsv = await exportCsv(main1.owner);
+  const renameRows = renameCsv.rows.slice(1).filter((row) => inviterCol >= 0 && row[inviterCol] === renamed).length;
+  check('认领之后改名，已有报名的邀请人也跟着改', renameRows === 10, `rows=${renameRows}`);
+
+  const ownerHome = await callText(main1.owner, `/manage/${main1.id}`);
+  check('发起人不用走认领（建活动时已经填过名字）', ownerHome.status === 200, `status=${ownerHome.status}`);
+
   // ======================================================== 7. 越权
   section('7. 越权：跨活动、伪造会话、撤销后的链接');
   const crossRoster = await callText(race.owner, `/manage/${main1.id}/roster`);
@@ -469,6 +536,8 @@ async function main() {
   const plainAdmin = jar();
   const entered = await call(plainAdmin, new URL(admins[0].manageLink).pathname);
   check('管理链接可换会话', (entered.status === 307 || entered.status === 302) && plainAdmin.has('se_admin'), `status=${entered.status}`);
+  // 认领是进后台的前置步骤，先走掉，下面才测得到权限边界本身。
+  await callJson(plainAdmin, '/api/se/admins', { method: 'PATCH', json: { action: 'profile', name: admins[0].name } });
   const adminMakesChannels = await callJson(plainAdmin, '/api/se/admins', { method: 'POST', json: { names: ['我想自己加人'], kind: 'admin' } });
   check(
     '普通管理员不能批量生成渠道（只有发起人能）',

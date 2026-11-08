@@ -40,11 +40,14 @@ export const SE_STATEMENTS: string[] = [
     id TEXT PRIMARY KEY,
     event_id TEXT NOT NULL,
     name TEXT NOT NULL,
+    invited_name TEXT NOT NULL DEFAULT '',
+    phone TEXT NOT NULL DEFAULT '',
     note TEXT NOT NULL DEFAULT '',
     role TEXT NOT NULL DEFAULT 'admin',
     token_hash TEXT NOT NULL,
     token_issued_at TEXT NOT NULL,
     token_revoked_at TEXT,
+    claimed_at TEXT,
     channel_id TEXT,
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL
@@ -156,3 +159,51 @@ export const SE_STATEMENTS: string[] = [
     count INTEGER NOT NULL DEFAULT 0
   )`,
 ];
+
+// 给「已经存在」的表补列。
+//
+// 上面那批语句全是 CREATE TABLE IF NOT EXISTS：新库会直接带上新列，但线上那张
+// 已经有数据的表它一个字都不会改。而 SQLite 的 ALTER TABLE ADD COLUMN 不是幂等的
+// —— 列已存在就直接报错，没有 IF NOT EXISTS 可用。所以 db/index.ts 先查
+// PRAGMA table_info，缺哪列补哪列。
+//
+// 只能往里加列，不能改列也不能删列：那会要求重建表，线上数据担不起。
+// 新列必须可空，或者带 DEFAULT —— 老行要靠它填上。
+// backfill 只在「这一列刚刚被加上」的那一次跑，不是每次启动都跑 —— 否则会把
+// 真正还没认领的人误标成已认领。
+export const SE_ADDED_COLUMNS: { table: string; column: string; ddl: string; backfill?: string }[] = [
+  // 管理员认领：生成链接时发起人先替他起个名（invited_name），本人第一次打开
+  // 链接时自己填真名和联系方式，claimed_at 落下那一刻的时间。
+  {
+    table: 'se_admins',
+    column: 'invited_name',
+    ddl: "invited_name TEXT NOT NULL DEFAULT ''",
+    backfill: "UPDATE se_admins SET invited_name = name WHERE invited_name = ''",
+  },
+  { table: 'se_admins', column: 'phone', ddl: "phone TEXT NOT NULL DEFAULT ''" },
+  {
+    table: 'se_admins',
+    column: 'claimed_at',
+    ddl: 'claimed_at TEXT',
+    // 这一列加上去的那一刻，库里已有的管理员全是「认领」这个功能上线之前建的。
+    // 不回填的话他们下次打开后台会被莫名其妙拦去填姓名 —— 包括发起人自己。
+    // 加列和回填只发生一次，之后新建的管理员才会真的带着 NULL 去走认领。
+    backfill: 'UPDATE se_admins SET claimed_at = created_at WHERE claimed_at IS NULL',
+  },
+];
+
+// 给定某张表「现在有哪些列」，算出该跑哪些语句。拆出来是为了能脱开 D1 直接测：
+// 建一张老结构的表、塞几行老数据、跑这些语句、看列补上了没、老行有没有被回填。
+// 返回空数组表示这张表已经是最新的（绝大多数启动都是这种情况）。
+export function pendingColumnStatements(table: string, existingColumns: Iterable<string>): string[] {
+  const present = new Set(existingColumns);
+  const statements: string[] = [];
+  for (const item of SE_ADDED_COLUMNS) {
+    if (item.table !== table || present.has(item.column)) continue;
+    statements.push(`ALTER TABLE ${item.table} ADD COLUMN ${item.ddl}`);
+    if (item.backfill) statements.push(item.backfill);
+  }
+  return statements;
+}
+
+export const SE_MIGRATED_TABLES = [...new Set(SE_ADDED_COLUMNS.map((item) => item.table))];
